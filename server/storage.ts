@@ -16,7 +16,7 @@ import {
   type SieveConfig, type InsertSieveConfig,
 } from "@shared/schema";
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 const db = drizzle(pool);
 
 function now() { return new Date().toISOString(); }
@@ -301,6 +301,9 @@ export interface IStorage {
   getUser(email: string): Promise<User | undefined>;
   getUserById(id: number): Promise<User | undefined>;
   createUser(data: InsertUser): Promise<User>;
+  getUsers(): Promise<Omit<User, 'passwordHash'>[]>;
+  createUserWithPassword(data: { name: string; email: string; password: string; role: string }): Promise<Omit<User, 'passwordHash'>>;
+  deleteUser(id: number): Promise<void>;
   getLeads(): Promise<Lead[]>;
   getLead(id: number): Promise<Lead | undefined>;
   createLead(data: InsertLead): Promise<Lead>;
@@ -340,6 +343,27 @@ export const storage: IStorage = {
   getUser: async (email) => (await db.select().from(users).where(eq(users.email, email)))[0],
   getUserById: async (id) => (await db.select().from(users).where(eq(users.id, id)))[0],
   createUser: async (data) => (await db.insert(users).values({ ...data, createdAt: now() }).returning())[0],
+  getUsers: async () => {
+    const rows = await db.select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      createdAt: users.createdAt,
+    }).from(users).orderBy(users.createdAt);
+    return rows;
+  },
+  createUserWithPassword: async ({ name, email, password, role }) => {
+    const [row] = await db.insert(users).values({
+      name,
+      email,
+      role,
+      passwordHash: password,
+      createdAt: now(),
+    }).returning();
+    return { id: row.id, name: row.name, email: row.email, role: row.role, createdAt: row.createdAt };
+  },
+  deleteUser: async (id) => { await db.delete(users).where(eq(users.id, id)); },
 
   getLeads: async () => db.select().from(leads).orderBy(desc(leads.createdAt)),
   getLead: async (id) => (await db.select().from(leads).where(eq(leads.id, id)))[0],

@@ -83,6 +83,51 @@ export async function registerRoutes(httpServer: Server, app: Express) {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 
+  // ── Users / Team Management ────────────────────────────────────────────────
+  app.get("/api/users", async (_req, res) => {
+    try {
+      const list = await storage.getUsers();
+      res.json(list);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const { name, email, password, role } = req.body;
+      if (!name || !email || !password) {
+        return res.status(400).json({ error: "name, email, and password are required" });
+      }
+      if (role !== "admin" && role !== "analyst") {
+        return res.status(400).json({ error: "role must be 'admin' or 'analyst'" });
+      }
+      // Check email uniqueness
+      const existing = await storage.getUser(email);
+      if (existing) {
+        return res.status(400).json({ error: "A user with that email already exists" });
+      }
+      const user = await storage.createUserWithPassword({ name, email, password, role });
+      res.json(user);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      // Prevent deleting the last admin
+      const allUsers = await storage.getUsers();
+      const target = allUsers.find(u => u.id === id);
+      if (!target) return res.status(404).json({ error: "User not found" });
+      if (target.role === "admin") {
+        const adminCount = allUsers.filter(u => u.role === "admin").length;
+        if (adminCount <= 1) {
+          return res.status(400).json({ error: "Cannot delete the last admin user" });
+        }
+      }
+      await storage.deleteUser(id);
+      res.json({ ok: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
   // ── Dashboard stats ─────────────────────────────────────────────────────────
   app.get("/api/dashboard/stats", async (_req, res) => {
     try {
@@ -331,5 +376,49 @@ export async function registerRoutes(httpServer: Server, app: Express) {
   app.patch("/api/tefra-issuers/:id", async (req, res) => {
     try { res.json(await storage.updateTefraIssuer(Number(req.params.id), req.body)); }
     catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── Sourcing ────────────────────────────────────────────────────────────────
+  app.get("/api/sourcing/runs", async (_req, res) => {
+    try { res.json(await storage.getSourcingRuns()); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+  app.get("/api/sourcing/runs/:id/results", async (req, res) => {
+    try { res.json(await storage.getSourcingResults(Number(req.params.id))); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+  app.post("/api/sourcing/run", async (_req, res) => {
+    try {
+      const { runSourcingEngine } = await import("./sourcing");
+      res.json({ message: "Sourcing run started" });
+      runSourcingEngine().catch((e: any) => console.error("[Sourcing] Error:", e.message));
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+
+  // ── Users (Team Management) ─────────────────────────────────────────────────
+  app.get("/api/users", async (_req, res) => {
+    try { res.json(await storage.getUsers()); }
+    catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+  app.post("/api/users", async (req, res) => {
+    try {
+      const { name, email, password, role } = req.body;
+      if (!name || !email || !password) return res.status(400).json({ error: "Name, email and password are required" });
+      if (!['admin','analyst'].includes(role)) return res.status(400).json({ error: "Role must be admin or analyst" });
+      const existing = await storage.getUserByEmail(email);
+      if (existing) return res.status(400).json({ error: "Email already in use" });
+      const user = await storage.createUserWithPassword({ name, email, password, role });
+      res.json(user);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+  });
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      const admins = users.filter((u: any) => u.role === 'admin');
+      const target = users.find((u: any) => u.id === Number(req.params.id));
+      if (target?.role === 'admin' && admins.length <= 1) return res.status(400).json({ error: "Cannot delete the last admin" });
+      await storage.deleteUser(Number(req.params.id));
+      res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
   });
 }
