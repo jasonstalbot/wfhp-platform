@@ -15,6 +15,7 @@ import MarketSievePage from "./pages/MarketSieve";
 import PipelinePage from "./pages/Pipeline";
 import IssuersPage from "./pages/Issuers";
 import SettingsPage from "./pages/Settings";
+import SourcingPage from "./pages/Sourcing";
 
 // Auth context
 import { AuthProvider, useAuth } from "./hooks/useAuth";
@@ -33,6 +34,7 @@ function AppShell() {
     { href: "/market-sieve", label: "Market Sieve", icon: "◎" },
     { href: "/pipeline", label: "Pipeline / CRM", icon: "◱" },
     { href: "/issuers", label: "TEFRA Issuers", icon: "⊞" },
+    { href: "/sourcing", label: "Deal Sourcing", icon: "◉" },
     { href: "/settings", label: "Settings", icon: "⚙" },
   ];
 
@@ -92,6 +94,7 @@ function AppShell() {
           <Route path="/pipeline" component={PipelinePage} />
           <Route path="/issuers" component={IssuersPage} />
           <Route path="/settings" component={SettingsPage} />
+          <Route path="/sourcing" component={SourcingPage} />
         </Switch>
       </main>
     </div>
