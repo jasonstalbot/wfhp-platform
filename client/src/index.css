@@ -1,0 +1,97 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* WFHP Platform — Institutional dark finance palette */
+    /* Inspired by Bloomberg terminal / Blackstone aesthetic */
+    --background: 220 15% 8%;
+    --foreground: 210 10% 88%;
+
+    --card: 220 14% 11%;
+    --card-foreground: 210 10% 88%;
+
+    --popover: 220 14% 11%;
+    --popover-foreground: 210 10% 88%;
+
+    --primary: 45 85% 55%;        /* WFHP Gold */
+    --primary-foreground: 220 15% 8%;
+
+    --secondary: 220 12% 16%;
+    --secondary-foreground: 210 10% 75%;
+
+    --muted: 220 12% 14%;
+    --muted-foreground: 215 8% 50%;
+
+    --accent: 220 12% 18%;
+    --accent-foreground: 210 10% 88%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 10% 18%;
+    --input: 220 12% 14%;
+    --ring: 45 85% 55%;
+
+    --radius: 0.375rem;
+
+    /* Semantic deal status colors */
+    --color-go: 142 71% 45%;
+    --color-conditional: 45 85% 55%;
+    --color-nogo: 0 72% 51%;
+    --color-loi: 199 89% 48%;
+    --color-watch: 280 60% 60%;
+  }
+
+  /* WFHP stays dark-first — no light mode for internal deal platform */
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'DM Sans', 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Monospace for financial data */
+  .font-mono, .tabular-nums {
+    font-family: 'DM Mono', 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Thin horizontal dividers */
+  .rule {
+    @apply border-t border-border;
+  }
+
+  /* Status badges */
+  .badge-go      { @apply bg-green-500/15 text-green-400 border border-green-500/30; }
+  .badge-conditional { @apply bg-yellow-500/15 text-yellow-400 border border-yellow-500/30; }
+  .badge-nogo    { @apply bg-red-500/15 text-red-400 border border-red-500/30; }
+  .badge-loi     { @apply bg-sky-500/15 text-sky-400 border border-sky-500/30; }
+  .badge-new     { @apply bg-zinc-500/15 text-zinc-400 border border-zinc-500/30; }
+  .badge-watch   { @apply bg-purple-500/15 text-purple-400 border border-purple-500/30; }
+
+  /* Stat number display */
+  .stat-value { 
+    @apply font-mono text-2xl font-semibold text-yellow-400 tabular-nums;
+  }
+
+  /* Table rows */
+  .data-row { @apply border-b border-border hover:bg-muted/50 transition-colors; }
+
+  /* Panel */
+  .panel { @apply bg-card border border-border rounded-md p-4; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
+}

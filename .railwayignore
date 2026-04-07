@@ -1,0 +1,4 @@
+node_modules
+wfhp.db
+*.db
+.env
